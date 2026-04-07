@@ -1,0 +1,439 @@
+/**
+ * Per-element match clear VFX (blade, ember, tide, spark, root, void).
+ * Driven by .tile--match-vfx + .tile--vfx-<type> on the tile; .tile-vfx-layer holds pseudo-element bursts.
+ */
+
+.grid--match-vfx-active {
+  filter: saturate(1.08);
+  transition: filter 0.2s ease;
+}
+
+.tile--match-vfx {
+  z-index: 14 !important;
+  overflow: visible !important;
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.tile--match-vfx .tile-art {
+  animation: vfx-tile-art-dissolve 0.42s ease-in forwards 0.08s;
+}
+
+.tile--match-vfx .tile-label {
+  animation: vfx-tile-art-dissolve 0.35s ease-in forwards;
+}
+
+@keyframes vfx-tile-art-dissolve {
+  to {
+    opacity: 0;
+    transform: scale(0.88);
+    filter: blur(3px) brightness(1.4);
+  }
+}
+
+.tile-vfx-layer {
+  position: absolute;
+  inset: -6px;
+  pointer-events: none;
+  border-radius: 12px;
+  z-index: 16;
+  overflow: visible;
+}
+
+/* —— Blade: steel slash + cyan sparks —— */
+@keyframes vfx-blade-slash {
+  0% {
+    opacity: 0;
+    transform: rotate(-35deg) scaleX(0.2);
+  }
+  25% {
+    opacity: 1;
+    transform: rotate(-35deg) scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(-35deg) scaleX(1.2) translateX(8px);
+  }
+}
+
+@keyframes vfx-blade-glint {
+  0% {
+    opacity: 0.9;
+    box-shadow: 0 0 0 0 rgba(180, 230, 255, 0);
+  }
+  40% {
+    opacity: 1;
+    box-shadow:
+      0 0 20px 6px rgba(200, 240, 255, 0.75),
+      inset 0 0 30px rgba(255, 255, 255, 0.35);
+  }
+  100% {
+    opacity: 0;
+    box-shadow: 0 0 40px 12px rgba(160, 220, 255, 0);
+  }
+}
+
+.tile--vfx-blade .tile-vfx-layer::before {
+  content: "";
+  position: absolute;
+  left: 10%;
+  top: 50%;
+  width: 120%;
+  height: 6px;
+  margin-top: -3px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.95) 35%,
+    rgba(160, 220, 255, 0.9) 50%,
+    rgba(255, 255, 255, 0.95) 65%,
+    transparent
+  );
+  filter: blur(0.5px);
+  animation: vfx-blade-slash 0.52s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+  mix-blend-mode: screen;
+}
+
+.tile--vfx-blade .tile-vfx-layer::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 10px;
+  animation: vfx-blade-glint 0.52s ease-out forwards;
+  pointer-events: none;
+}
+
+/* —— Ember: fire bloom + rising heat —— */
+@keyframes vfx-ember-bloom {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.75);
+    filter: blur(0);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.2);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.65);
+    filter: blur(12px);
+  }
+}
+
+@keyframes vfx-ember-flicker {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  20% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0.65;
+  }
+  70% {
+    opacity: 1;
+  }
+}
+
+.tile--vfx-ember .tile-vfx-layer::before {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(
+      circle at 50% 85%,
+      rgba(255, 240, 120, 0.95) 0%,
+      rgba(255, 120, 40, 0.65) 35%,
+      rgba(200, 40, 20, 0.35) 55%,
+      transparent 72%
+    ),
+    radial-gradient(
+      circle at 30% 60%,
+      rgba(255, 200, 60, 0.5) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 70% 55%,
+      rgba(255, 80, 40, 0.45) 0%,
+      transparent 40%
+    );
+  animation: vfx-ember-bloom 0.58s ease-out forwards;
+  mix-blend-mode: screen;
+}
+
+.tile--vfx-ember .tile-vfx-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: linear-gradient(
+    0deg,
+    transparent 40%,
+    rgba(255, 200, 80, 0.25) 70%,
+    rgba(255, 255, 200, 0.5) 100%
+  );
+  animation: vfx-ember-flicker 0.12s ease-in-out 4;
+  mix-blend-mode: screen;
+}
+
+/* —— Tide: water rings + flow —— */
+@keyframes vfx-tide-ripple {
+  0% {
+    transform: scale(0.4);
+    opacity: 1;
+    border-width: 4px;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+    border-width: 1px;
+  }
+}
+
+@keyframes vfx-tide-flow {
+  0% {
+    background-position: 50% 50%;
+    opacity: 0.85;
+  }
+  100% {
+    background-position: 50% 20%;
+    opacity: 0;
+  }
+}
+
+.tile--vfx-tide .tile-vfx-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: solid rgba(120, 220, 255, 0.85);
+  animation: vfx-tide-ripple 0.55s ease-out forwards;
+  box-shadow: 0 0 24px rgba(80, 180, 255, 0.6);
+}
+
+.tile--vfx-tide .tile-vfx-layer::after {
+  content: "";
+  position: absolute;
+  inset: -15%;
+  border-radius: 12px;
+  background: repeating-linear-gradient(
+    -12deg,
+    transparent,
+    transparent 6px,
+    rgba(100, 200, 255, 0.12) 6px,
+    rgba(100, 200, 255, 0.12) 8px
+  );
+  background-size: 200% 200%;
+  animation: vfx-tide-flow 0.62s ease-in forwards;
+  mix-blend-mode: soft-light;
+  mask-image: radial-gradient(circle at 50% 60%, black 0%, transparent 70%);
+}
+
+/* —— Spark: electric crackle —— */
+@keyframes vfx-spark-jolt {
+  0%,
+  100% {
+    opacity: 0;
+    filter: brightness(1);
+  }
+  10%,
+  30%,
+  50%,
+  70% {
+    opacity: 1;
+    filter: brightness(1.8) drop-shadow(0 0 8px #fff59d);
+  }
+  20%,
+  40%,
+  60% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes vfx-spark-burst {
+  0% {
+    transform: scale(0.5) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5) rotate(12deg);
+    opacity: 0;
+  }
+}
+
+.tile--vfx-spark .tile-vfx-layer::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  background:
+    linear-gradient(
+      115deg,
+      transparent 40%,
+      rgba(255, 255, 220, 0.9) 48%,
+      transparent 52%
+    ),
+    linear-gradient(
+      65deg,
+      transparent 42%,
+      rgba(255, 248, 160, 0.85) 50%,
+      transparent 58%
+    ),
+    linear-gradient(
+      175deg,
+      transparent 44%,
+      rgba(255, 255, 255, 0.75) 50%,
+      transparent 56%
+    );
+  animation: vfx-spark-jolt 0.45s steps(1, end) forwards;
+  mix-blend-mode: screen;
+}
+
+.tile--vfx-spark .tile-vfx-layer::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 140%;
+  height: 140%;
+  margin: -70% 0 0 -70%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 252, 200, 0.9) 0%,
+    rgba(255, 220, 60, 0.4) 35%,
+    transparent 55%
+  );
+  animation: vfx-spark-burst 0.48s ease-out forwards;
+  mix-blend-mode: screen;
+}
+
+/* —— Root: nature pulse + spores —— */
+@keyframes vfx-root-pulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.9;
+    box-shadow: 0 0 0 0 rgba(120, 220, 140, 0.7);
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 1;
+    box-shadow: 0 0 28px 10px rgba(100, 200, 120, 0.55);
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+    box-shadow: 0 0 40px 4px rgba(80, 180, 100, 0);
+  }
+}
+
+@keyframes vfx-root-spin {
+  to {
+    transform: rotate(180deg) scale(1.3);
+    opacity: 0;
+  }
+}
+
+.tile--vfx-root .tile-vfx-layer::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 12px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(180, 255, 180, 0.5) 0%,
+    rgba(60, 160, 80, 0.35) 45%,
+    transparent 70%
+  );
+  animation: vfx-root-pulse 0.56s ease-out forwards;
+  mix-blend-mode: screen;
+}
+
+.tile--vfx-root .tile-vfx-layer::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    rgba(140, 220, 140, 0.25) 15%,
+    transparent 30%,
+    rgba(100, 200, 120, 0.2) 45%,
+    transparent 60%,
+    rgba(160, 240, 160, 0.22) 75%,
+    transparent
+  );
+  animation: vfx-root-spin 0.58s ease-in forwards;
+  mix-blend-mode: soft-light;
+}
+
+/* —— Void: dark well + violet rim —— */
+@keyframes vfx-void-suck {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: scale(0.35);
+    opacity: 0;
+    filter: blur(8px);
+  }
+}
+
+@keyframes vfx-void-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 1;
+    border-color: rgba(200, 150, 255, 0.95);
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+    border-color: rgba(120, 60, 200, 0);
+  }
+}
+
+.tile--vfx-void .tile-vfx-layer::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 10px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(40, 10, 60, 0.95) 0%,
+    rgba(20, 5, 40, 0.85) 50%,
+    rgba(80, 40, 140, 0.4) 100%
+  );
+  animation: vfx-void-suck 0.58s cubic-bezier(0.6, 0, 0.8, 0.5) forwards;
+  mix-blend-mode: multiply;
+}
+
+.tile--vfx-void .tile-vfx-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  border: 3px solid rgba(180, 120, 255, 0.9);
+  box-shadow:
+    0 0 20px rgba(140, 80, 220, 0.7),
+    inset 0 0 24px rgba(100, 50, 180, 0.5);
+  animation: vfx-void-ring 0.62s ease-out forwards;
+  mix-blend-mode: screen;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .tile--match-vfx .tile-art,
+  .tile--match-vfx .tile-label,
+  .tile-vfx-layer::before,
+  .tile-vfx-layer::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .grid--match-vfx-active {
+    filter: none;
+  }
+}
