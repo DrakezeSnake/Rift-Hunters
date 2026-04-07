@@ -6,16 +6,15 @@
     return window.RH_DATA;
   };
 
-  function affinityMult(tileType, monsterAffinityKey) {
+  function attackerVsDefenderMult(attackerElement, defenderElement) {
     const data = D();
-    const a = data.AFFINITY[monsterAffinityKey];
-    if (!a) return 1;
-    if (a.boss) {
-      return 0.5;
-    }
-    if (a.weak.indexOf(tileType) >= 0) return data.WEAK_MULT;
-    if (a.resist.indexOf(tileType) >= 0) return data.RESIST_MULT;
+    const beats = data.ELEMENT_BEATS[attackerElement] || [];
+    if (beats.indexOf(defenderElement) >= 0) return data.STRONG_MULT;
     return 1;
+  }
+
+  function incomingMultiplier(monsterElement, hunterElement) {
+    return attackerVsDefenderMult(monsterElement, hunterElement);
   }
 
   function baseDamageFromTile(tile) {
@@ -74,7 +73,7 @@
       if (t.type === null) continue;
       let d = baseDamageFromTile(t);
       d *= cm;
-      d *= affinityMult(t.type, state.monster.affinityKey);
+      d *= attackerVsDefenderMult(t.type, state.monster.affinityKey);
       damage += Math.max(0, Math.floor(d));
       if (t.type === "root") {
         heal += 5;
@@ -105,6 +104,7 @@
 
   function monsterDamageToPlayer(state, baseDamage) {
     let d = baseDamage;
+    d *= incomingMultiplier(state.monster.affinityKey, state.hunter.elementType);
     d *= applyFloatHooks(state, "monsterOutgoingDamageMult", 1);
     return Math.max(0, Math.floor(d));
   }
@@ -114,7 +114,8 @@
   }
 
   window.RH_COMBAT = {
-    affinityMult,
+    attackerVsDefenderMult,
+    incomingMultiplier,
     baseDamageFromTile,
     cascadeMultiplier,
     resolveWaveDamage,

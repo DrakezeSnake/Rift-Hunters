@@ -19,6 +19,7 @@
     spark: 500,
     root: 560,
     void: 620,
+    divine: 620,
   };
 
   /** Pause on empty cells after VFX, before gravity (was ~1s total with instant clear). */
@@ -84,6 +85,11 @@
       name: "Kael",
       elementType: "blade",
       portraitId: "Kael_back",
+      specialCharge: 0,
+      specialNeeded: 12,
+      specialReady: false,
+      specialArmed: false,
+      readyToastShown: false,
     },
     playerHp: 100,
     playerMaxHp: 100,
@@ -91,6 +97,7 @@
     monsterTimer: 8,
     paused: false,
     lastTs: 0,
+    telegraphTick: -1,
   };
 
   const el = {
@@ -109,6 +116,7 @@
     playerHpFill: null,
     playerHpText: null,
     hunterSpecialFill: null,
+    combatToast: null,
     timerRing: null,
     floorPill: null,
     riftStrip: null,
@@ -133,6 +141,7 @@
     "spark",
     "root",
     "void",
+    "divine",
   ];
 
   function clearMonsterPortraitStrikeClasses() {
@@ -504,6 +513,11 @@
 
       const wave = { tiles: tiles, cascadeIndex: cascadeIndex };
       const res = RC.resolveWaveDamage(state, wave);
+      chargeHunterSpecialFromTiles(tiles);
+      if (state.hunter.specialArmed && cascadeIndex === 0) {
+        res.damage = Math.floor(res.damage * 3);
+        state.hunter.specialArmed = false;
+      }
 
       const vfxMs = startMatchClearVfx(clearList);
       window.setTimeout(function () {
@@ -617,19 +631,26 @@
     const attackTimerMax = Math.max(3.2, 8 - (floor - 1) * 0.45);
     const attackDamage = Math.floor(10 + floor * 2);
     const defs = [
-      { name: "Ash Whelp", affinityKey: "fire", portraitId: "default" },
-      { name: "Thornback", affinityKey: "stone", portraitId: "Thornback" },
-      { name: "Bog Wraith", affinityKey: "shadow", portraitId: "Bog wraith" },
+      { name: "Ash Whelp", affinityKey: "ember", portraitId: "default" },
+      { name: "Thornback", affinityKey: "root", portraitId: "Thornback" },
+      { name: "Bog Wraith", affinityKey: "void", portraitId: "Bog wraith" },
+      { name: "Solar Idol", affinityKey: "divine", portraitId: "default" },
     ];
     const def = defs[(floor - 1) % defs.length];
+    const isBossFloor = floor % 4 === 0;
     return {
       name: def.name,
       hp: hp,
       maxHp: hp,
       affinityKey: def.affinityKey,
-      attackTimerMax: attackTimerMax,
+      attackTimerMax: isBossFloor ? Math.max(2.4, attackTimerMax - 0.8) : attackTimerMax,
       attackDamage: attackDamage,
       portraitId: def.portraitId,
+      behaviors: {
+        berserk: floor >= 6,
+        tileDrain: floor >= 5,
+        chargeTelegraph: isBossFloor,
+      },
     };
   }
 
@@ -675,6 +696,7 @@
       spark: "Sp",
       root: "Rt",
       void: "Vo",
+      divine: "Dv",
     };
     return map[type] || "?";
   }
@@ -688,13 +710,69 @@
       spark: "Spark",
       root: "Root",
       void: "Void",
-      fire: "Fire",
-      stone: "Stone",
-      sea: "Sea",
-      shadow: "Shadow",
-      rift_demon: "Rift",
+      divine: "Divine",
     };
     return labels[t] || "Neutral";
+  }
+
+  function showCombatToast(text, ms) {
+    if (!el.combatToast) return;
+    el.combatToast.textContent = text;
+    el.combatToast.classList.add("show");
+    window.setTimeout(function () {
+      if (el.combatToast && el.combatToast.textContent === text) {
+        el.combatToast.classList.remove("show");
+      }
+    }, ms || 1000);
+  }
+
+  function chargeHunterSpecialFromTiles(tiles) {
+    const h = state.hunter;
+    if (h.specialReady) return;
+    let gain = 0;
+    for (let i = 0; i < tiles.length; i++) {
+      if (tiles[i].type === h.elementType) gain += 1;
+    }
+    if (!gain) return;
+    h.specialCharge = Math.min(h.specialNeeded, h.specialCharge + gain);
+    if (h.specialCharge >= h.specialNeeded) {
+      h.specialCharge = h.specialNeeded;
+      h.specialReady = true;
+      if (!h.readyToastShown) {
+        h.readyToastShown = true;
+        showCombatToast("READY", 1000);
+      }
+    }
+  }
+
+  function tryCastHunterSpecial() {
+    const h = state.hunter;
+    if (!h.specialReady) return;
+    h.specialReady = false;
+    h.specialArmed = true;
+    h.specialCharge = 0;
+    showCombatToast("Iron Surge", 900);
+    updateHud();
+  }
+
+  function applyMonsterBoardPressure() {
+    if (!state.monster || !state.monster.behaviors) return;
+    if (!state.monster.behaviors.tileDrain) return;
+    const candidates = [];
+    for (let r = 0; r < RG.ROWS; r++) {
+      for (let c = 0; c < RG.COLS; c++) {
+        if (state.grid[r][c].type !== null) {
+          candidates.push({ r: r, c: c });
+        }
+      }
+    }
+    if (!candidates.length) return;
+    const pick = candidates[Math.floor(rng() * candidates.length)];
+    state.grid[pick.r][pick.c] = RG.createCell(null, null);
+    const fallMap = computeGravityFallMap(state.grid);
+    fillEmptyWithFallDistances(state.grid, fallMap);
+    renderGrid();
+    showCombatToast("Tile Drain", 700);
   }
 
   function renderGrid() {
@@ -749,6 +827,15 @@
   function updateHud() {
     const m = state.monster;
     const h = state.hunter;
+    const appRoot = document.getElementById("app");
+    if (appRoot && RC.attackerVsDefenderMult) {
+      const outMult = RC.attackerVsDefenderMult(h.elementType, m.affinityKey);
+      const inMult = RC.incomingMultiplier
+        ? RC.incomingMultiplier(m.affinityKey, h.elementType)
+        : 1;
+      appRoot.classList.toggle("matchup-advantage", outMult > 1);
+      appRoot.classList.toggle("matchup-danger", inMult > 1);
+    }
     if (el.hunterName) {
       el.hunterName.textContent = h.name;
     }
@@ -771,6 +858,7 @@
         el.hunterPortrait.appendChild(hunterImg);
         configureHunterImage(hunterImg, hunterPortraitId);
       }
+      el.hunterPortrait.classList.toggle("special-ready", !!h.specialReady);
     }
     el.monsterName.textContent = m.name;
     if (el.monsterType) {
@@ -805,8 +893,9 @@
         "scaleX(" + Math.max(0, Math.min(1, sp)) + ")";
     }
     if (el.hunterSpecialFill) {
-      const hs = Math.max(0.25, Math.min(1, pp * 0.8 + 0.2));
-      el.hunterSpecialFill.style.transform = "scaleX(" + hs + ")";
+      const hs = h.specialNeeded > 0 ? h.specialCharge / h.specialNeeded : 0;
+      el.hunterSpecialFill.style.transform =
+        "scaleX(" + Math.max(0, Math.min(1, hs)) + ")";
     }
 
     const prog = maxT > 0 ? state.monsterTimer / maxT : 0;
@@ -832,13 +921,31 @@
     state.lastTs = ts;
 
     if (!state.paused && state.monster && state.monster.hp > 0) {
-      const spd = RC.timerSpeedMultiplier(state);
+      let behaviorSpeed = 1;
+      if (
+        state.monster.behaviors &&
+        state.monster.behaviors.berserk &&
+        state.monster.maxHp > 0 &&
+        state.monster.hp / state.monster.maxHp <= 0.3
+      ) {
+        behaviorSpeed = 1.8;
+      }
+      const spd = RC.timerSpeedMultiplier(state) * behaviorSpeed;
       state.monsterTimer -= dt * spd;
+      if (state.monster.behaviors && state.monster.behaviors.chargeTelegraph) {
+        const tick = Math.max(0, Math.ceil(state.monsterTimer));
+        if (tick <= 3 && tick > 0 && tick !== state.telegraphTick) {
+          state.telegraphTick = tick;
+          showCombatToast("Charge in " + tick, 500);
+        }
+      }
       if (state.monsterTimer <= 0) {
         state.monsterTimer = 0;
         const dmg = RC.monsterDamageToPlayer(state, state.monster.attackDamage);
         state.playerHp -= dmg;
         state.monsterTimer = state.monster.attackTimerMax;
+        state.telegraphTick = -1;
+        applyMonsterBoardPressure();
         updateHud();
         if (state.playerHp <= 0) {
           state.playerHp = 0;
@@ -904,10 +1011,12 @@
         state.run.floor++;
         state.monster = monsterForFloor(state.run.floor);
         state.monsterTimer = state.monster.attackTimerMax;
+        state.telegraphTick = -1;
         selectedRc = null;
         ensurePlayableGrid();
         renderGrid();
         updateHud();
+        showCombatToast("Enemy: " + elementTypeLabel(state.monster.affinityKey), 1000);
         state.paused = false;
       });
       el.riftCardRow.appendChild(btn);
@@ -934,11 +1043,25 @@
     state.playerMaxHp = 100;
     state.monster = monsterForFloor(1);
     state.monsterTimer = state.monster.attackTimerMax;
+    state.telegraphTick = -1;
+    state.hunter.specialCharge = 0;
+    state.hunter.specialReady = false;
+    state.hunter.specialArmed = false;
+    state.hunter.readyToastShown = false;
     state.paused = false;
     selectedRc = null;
     ensurePlayableGrid();
     renderGrid();
     updateHud();
+    if (
+      document.activeElement &&
+      el.gameOverOverlay &&
+      el.gameOverOverlay.contains(document.activeElement) &&
+      typeof document.activeElement.blur === "function"
+    ) {
+      document.activeElement.blur();
+    }
+    showCombatToast("Enemy: " + elementTypeLabel(state.monster.affinityKey), 1000);
     el.gameOverOverlay.classList.add("hidden");
     el.gameOverOverlay.setAttribute("aria-hidden", "true");
   }
@@ -1250,6 +1373,7 @@
     el.playerHpFill = document.getElementById("playerHpFill");
     el.playerHpText = document.getElementById("playerHpText");
     el.hunterSpecialFill = document.getElementById("hunterSpecialFill");
+    el.combatToast = document.getElementById("combatToast");
     el.timerRing = document.getElementById("timerRing");
     el.floorPill = document.getElementById("floorPill");
     el.riftStrip = document.getElementById("riftStrip");
@@ -1265,6 +1389,11 @@
     el.grid.addEventListener("pointerup", onPointerUp);
     el.grid.addEventListener("pointercancel", onPointerCancel);
     el.grid.addEventListener("lostpointercapture", onPointerCancel);
+    if (el.hunterPortrait) {
+      el.hunterPortrait.addEventListener("click", function () {
+        tryCastHunterSpecial();
+      });
+    }
 
     el.btnRestart.addEventListener("click", resetRun);
 

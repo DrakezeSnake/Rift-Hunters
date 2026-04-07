@@ -2,7 +2,7 @@
  * Rift Hunters — data definitions (monsters, tiles, affinity, Rift Cards).
  */
 (function () {
-  const TILE_TYPES = ["blade", "ember", "tide", "spark", "root", "void"];
+  const TILE_TYPES = ["blade", "ember", "tide", "spark", "root", "void", "divine"];
 
   /** Base damage per matched tile (before multipliers). Tuned for Phase 0. */
   const TILE_BASE_DAMAGE = {
@@ -12,6 +12,7 @@
     spark: 9,
     root: 6,
     void: 22,
+    divine: 11,
   };
 
   /**
@@ -24,21 +25,19 @@
     spark: 22,
     root: 22,
     void: 5,
+    divine: 4,
   };
 
-  /**
-   * affinityKey -> weak / resist use tile type ids (blade, ember, tide, spark, root, void).
-   */
-  const AFFINITY = {
-    fire: { weak: ["tide", "root"], resist: ["ember", "void"] },
-    stone: { weak: ["spark", "void"], resist: ["blade", "ember"] },
-    sea: { weak: ["spark", "root"], resist: ["tide", "blade"] },
-    shadow: { weak: ["ember", "spark"], resist: ["void", "tide"] },
-    rift_demon: { weak: [], resist: [], boss: true },
+  const ELEMENT_BEATS = {
+    ember: ["root"],
+    tide: ["ember"],
+    root: ["spark"],
+    void: ["divine"],
+    divine: ["void"],
   };
 
-  const WEAK_MULT = 1.75;
-  const RESIST_MULT = 0.6;
+  const STRONG_MULT = 2;
+  const WEAK_TAKEN_MULT = 2;
 
   /**
    * Cascade damage multiplier: each wave uses 1.5 ** cascadeIndex
@@ -302,6 +301,12 @@
         inner:
           '<circle cx="128" cy="128" r="56" fill="none" stroke="#e9d5ff" stroke-width="10"/><circle cx="128" cy="128" r="28" fill="#6b21a8"/>',
       },
+      divine: {
+        bg: "#8a6b0a",
+        fg: "#ffed9e",
+        inner:
+          '<path d="M128 46 L146 108 L210 108 L158 146 L176 210 L128 172 L80 210 L98 146 L46 108 L110 108 Z" fill="#ffed9e"/><circle cx="128" cy="128" r="14" fill="#fff4c8"/>',
+      },
     };
     const d = defs[t] || {
       bg: "#333",
@@ -372,9 +377,9 @@
     TILE_TYPES,
     TILE_BASE_DAMAGE,
     TILE_SPAWN_WEIGHTS,
-    AFFINITY,
-    WEAK_MULT,
-    RESIST_MULT,
+    ELEMENT_BEATS,
+    STRONG_MULT,
+    WEAK_TAKEN_MULT,
     CASCADE_MULT_BASE,
     RIFT_CARD_DEFS,
     ASSETS,

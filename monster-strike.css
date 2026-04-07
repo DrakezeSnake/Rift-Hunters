@@ -95,6 +95,18 @@
   animation: monster-elem-void 0.46s ease-out forwards;
 }
 
+/* Divine — radiant flare */
+.monster-portrait.monster-strike-active.monster-elem-divine::after {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 245, 180, 0.82) 0%,
+    rgba(255, 220, 120, 0.45) 48%,
+    transparent 76%
+  );
+  mix-blend-mode: screen;
+  animation: monster-elem-pop 0.44s ease-out forwards;
+}
+
 @keyframes monster-elem-pop {
   0% {
     opacity: 0;
