@@ -696,12 +696,18 @@
     const m = state.monster;
     el.monsterName.textContent = m.name;
     if (el.monsterPortrait) {
-      el.monsterPortrait.innerHTML = "";
-      const mp = document.createElement("img");
-      mp.alt = "";
-      mp.draggable = false;
-      el.monsterPortrait.appendChild(mp);
-      configurePortraitImage(mp, m.portraitId || "default");
+      const portraitId = m.portraitId || "default";
+      let img = el.monsterPortrait.querySelector("img.monster-portrait-img");
+      if (!img || img.getAttribute("data-portrait-id") !== portraitId) {
+        el.monsterPortrait.innerHTML = "";
+        img = document.createElement("img");
+        img.className = "monster-portrait-img";
+        img.alt = "";
+        img.draggable = false;
+        img.setAttribute("data-portrait-id", portraitId);
+        el.monsterPortrait.appendChild(img);
+        configurePortraitImage(img, portraitId);
+      }
     }
     const mp = m.maxHp > 0 ? m.hp / m.maxHp : 0;
     el.monsterHpFill.style.transform = "scaleX(" + Math.max(0, mp) + ")";
