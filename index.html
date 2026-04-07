@@ -16,7 +16,7 @@
       <section class="battle-stage" aria-label="Battle">
         <div class="battle-bg" aria-hidden="true"></div>
         <div class="battle-content">
-          <div class="combat-overlay">
+          <div class="battle-layout">
             <div class="hud-panel hud-panel--monster">
               <div class="bar-title">
                 <span id="monsterName">—</span>
@@ -32,6 +32,9 @@
               <div class="hud-track hud-track--special">
                 <div class="bar-fill bar-fill--special" id="monsterSpecialFill"></div>
               </div>
+            </div>
+            <div class="monster-shake-wrap" id="monsterShakeWrap">
+              <div class="monster-portrait" id="monsterPortrait" aria-hidden="true"></div>
             </div>
             <div class="hud-panel hud-panel--hunter">
               <div class="bar-title">
@@ -49,22 +52,16 @@
                 <div class="bar-fill bar-fill--special" id="hunterSpecialFill"></div>
               </div>
             </div>
-            <div class="battle-header-right">
-              <div class="floor-pill" id="floorPill">Floor 1</div>
-              <div class="timer-wrap" id="timerWrap" aria-label="Monster attack timer">
-                <svg class="timer-ring" viewBox="0 0 64 64">
-                  <circle class="timer-bg" cx="32" cy="32" r="28" />
-                  <circle class="timer-fg" id="timerRing" cx="32" cy="32" r="28" />
-                </svg>
-                <span class="timer-icon" id="timerIcon">⚔</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="battle-arena">
             <div class="hunter-portrait" id="hunterPortrait" role="button" aria-label="Cast hunter special"></div>
-            <div class="monster-shake-wrap" id="monsterShakeWrap">
-              <div class="monster-portrait" id="monsterPortrait" aria-hidden="true"></div>
+          </div>
+          <div class="battle-header-right">
+            <div class="floor-pill" id="floorPill">Floor 1</div>
+            <div class="timer-wrap" id="timerWrap" aria-label="Monster attack timer">
+              <svg class="timer-ring" viewBox="0 0 64 64">
+                <circle class="timer-bg" cx="32" cy="32" r="28" />
+                <circle class="timer-fg" id="timerRing" cx="32" cy="32" r="28" />
+              </svg>
+              <span class="timer-icon" id="timerIcon">⚔</span>
             </div>
           </div>
           <div class="combat-toast" id="combatToast" aria-live="polite"></div>
