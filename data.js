@@ -149,6 +149,21 @@
     return out;
   }
 
+  function hunterFileUrlsForBaseName(baseName) {
+    const folders = [
+      "assets/Hunters",
+      "assets/hunters",
+      "assets/images/hunters",
+    ];
+    const out = [];
+    for (let f = 0; f < folders.length; f++) {
+      for (let i = 0; i < ASSET_EXTS.length; i++) {
+        out.push(folders[f] + "/" + baseName + ASSET_EXTS[i]);
+      }
+    }
+    return out;
+  }
+
   function riftCardUrlCandidatesInner(cardId) {
     const id = String(cardId || "");
     const lower = id.toLowerCase();
@@ -161,6 +176,25 @@
       if (seen[names[n]]) continue;
       seen[names[n]] = true;
       const part = riftCardFileUrlsForBaseName(names[n]);
+      for (let i = 0; i < part.length; i++) {
+        out.push(part[i]);
+      }
+    }
+    return out;
+  }
+
+  function hunterUrlCandidatesInner(hunterId) {
+    const id = String(hunterId || "").trim();
+    const lower = id.toLowerCase();
+    const names = [];
+    if (id) names.push(id);
+    if (lower && lower !== id) names.push(lower);
+    const seen = {};
+    const out = [];
+    for (let n = 0; n < names.length; n++) {
+      if (seen[names[n]]) continue;
+      seen[names[n]] = true;
+      const part = hunterFileUrlsForBaseName(names[n]);
       for (let i = 0; i < part.length; i++) {
         out.push(part[i]);
       }
@@ -323,7 +357,7 @@
       return riftCardUrlCandidatesInner(cardId);
     },
     hunterUrlCandidates: function (hunterId) {
-      return urlCandidates("hunters", hunterId);
+      return hunterUrlCandidatesInner(hunterId);
     },
     /** @deprecated use *UrlCandidates + fallback loader */
     tileUrl: function (tileType) {

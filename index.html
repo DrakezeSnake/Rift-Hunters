@@ -16,35 +16,53 @@
       <section class="battle-stage" aria-label="Battle">
         <div class="battle-bg" aria-hidden="true"></div>
         <div class="battle-content">
-          <header class="battle-header">
-            <div class="bar-stack bar-stack--monster">
-              <div class="bar-title" id="monsterName">—</div>
+          <div class="combat-overlay">
+            <div class="hud-panel hud-panel--monster">
+              <div class="bar-title">
+                <span id="monsterName">—</span>
+                <span class="type-badge" id="monsterType">Fire</span>
+              </div>
               <div class="bar-line">
                 <div class="hud-track hud-track--monster">
                   <div class="bar-fill bar-fill--monster" id="monsterHpFill"></div>
                 </div>
                 <span class="bar-nums" id="monsterHpText"></span>
               </div>
+              <div class="bar-label">Special</div>
+              <div class="hud-track hud-track--special">
+                <div class="bar-fill bar-fill--special" id="monsterSpecialFill"></div>
+              </div>
+            </div>
+            <div class="hud-panel hud-panel--hunter">
+              <div class="bar-title">
+                <span id="hunterName">Kael</span>
+                <span class="type-badge" id="hunterType">Blade</span>
+              </div>
+              <div class="bar-line">
+                <div class="hud-track hud-track--player">
+                  <div class="bar-fill bar-fill--player" id="playerHpFill"></div>
+                </div>
+                <span class="bar-nums" id="playerHpText"></span>
+              </div>
+              <div class="bar-label">Special</div>
+              <div class="hud-track hud-track--special">
+                <div class="bar-fill bar-fill--special" id="hunterSpecialFill"></div>
+              </div>
             </div>
             <div class="battle-header-right">
+              <div class="floor-pill" id="floorPill">Floor 1</div>
               <div class="timer-wrap" id="timerWrap" aria-label="Monster attack timer">
                 <svg class="timer-ring" viewBox="0 0 64 64">
                   <circle class="timer-bg" cx="32" cy="32" r="28" />
-                  <circle
-                    class="timer-fg"
-                    id="timerRing"
-                    cx="32"
-                    cy="32"
-                    r="28"
-                  />
+                  <circle class="timer-fg" id="timerRing" cx="32" cy="32" r="28" />
                 </svg>
                 <span class="timer-icon" id="timerIcon">⚔</span>
               </div>
-              <div class="floor-pill" id="floorPill">Floor 1</div>
             </div>
-          </header>
+          </div>
 
-          <div class="monster-arena">
+          <div class="battle-arena">
+            <div class="hunter-portrait" id="hunterPortrait" aria-hidden="true"></div>
             <div class="monster-shake-wrap" id="monsterShakeWrap">
               <div class="monster-portrait" id="monsterPortrait" aria-hidden="true"></div>
             </div>
@@ -53,15 +71,6 @@
       </section>
 
       <section class="player-split">
-        <div class="bar-stack bar-stack--player">
-          <div class="bar-title">You</div>
-          <div class="bar-line">
-            <div class="hud-track hud-track--player">
-              <div class="bar-fill bar-fill--player" id="playerHpFill"></div>
-            </div>
-            <span class="bar-nums" id="playerHpText"></span>
-          </div>
-        </div>
         <div class="rift-strip" id="riftStrip" title="Active Rift Cards"></div>
       </section>
 

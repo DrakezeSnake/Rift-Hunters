@@ -80,6 +80,11 @@
   const state = {
     grid: null,
     monster: null,
+    hunter: {
+      name: "Kael",
+      elementType: "blade",
+      portraitId: "Kael_back",
+    },
     playerHp: 100,
     playerMaxHp: 100,
     run: { floor: 1, riftCards: [] },
@@ -91,13 +96,19 @@
   const el = {
     grid: null,
     gridWrap: null,
+    hunterPortrait: null,
+    hunterName: null,
+    hunterType: null,
     monsterPortrait: null,
     monsterShakeWrap: null,
     monsterName: null,
+    monsterType: null,
     monsterHpFill: null,
     monsterHpText: null,
+    monsterSpecialFill: null,
     playerHpFill: null,
     playerHpText: null,
+    hunterSpecialFill: null,
     timerRing: null,
     floorPill: null,
     riftStrip: null,
@@ -266,6 +277,25 @@
 
   function configurePortraitImage(img, portraitId) {
     const urls = RD.ASSETS.monsterUrlCandidates(portraitId || "default");
+    let idx = 0;
+    function tryNext() {
+      if (idx >= urls.length) {
+        img.onload = null;
+        img.onerror = null;
+        img.remove();
+        return;
+      }
+      img.onerror = function () {
+        idx += 1;
+        tryNext();
+      };
+      img.src = resolveAssetUrl(urls[idx]);
+    }
+    tryNext();
+  }
+
+  function configureHunterImage(img, hunterId) {
+    const urls = RD.ASSETS.hunterUrlCandidates(hunterId || "Kael_back");
     let idx = 0;
     function tryNext() {
       if (idx >= urls.length) {
@@ -586,14 +616,20 @@
     const hp = Math.floor(180 + ((floor - 1) * (4200 - 180)) / 11);
     const attackTimerMax = Math.max(3.2, 8 - (floor - 1) * 0.45);
     const attackDamage = Math.floor(10 + floor * 2);
+    const defs = [
+      { name: "Ash Whelp", affinityKey: "fire", portraitId: "default" },
+      { name: "Thornback", affinityKey: "stone", portraitId: "Thornback" },
+      { name: "Bog Wraith", affinityKey: "shadow", portraitId: "Bog wraith" },
+    ];
+    const def = defs[(floor - 1) % defs.length];
     return {
-      name: "Ash Whelp",
+      name: def.name,
       hp: hp,
       maxHp: hp,
-      affinityKey: "fire",
+      affinityKey: def.affinityKey,
       attackTimerMax: attackTimerMax,
       attackDamage: attackDamage,
-      portraitId: "default",
+      portraitId: def.portraitId,
     };
   }
 
@@ -641,6 +677,24 @@
       void: "Vo",
     };
     return map[type] || "?";
+  }
+
+  function elementTypeLabel(type) {
+    const t = String(type || "").toLowerCase();
+    const labels = {
+      blade: "Blade",
+      ember: "Ember",
+      tide: "Tide",
+      spark: "Spark",
+      root: "Root",
+      void: "Void",
+      fire: "Fire",
+      stone: "Stone",
+      sea: "Sea",
+      shadow: "Shadow",
+      rift_demon: "Rift",
+    };
+    return labels[t] || "Neutral";
   }
 
   function renderGrid() {
@@ -694,7 +748,34 @@
 
   function updateHud() {
     const m = state.monster;
+    const h = state.hunter;
+    if (el.hunterName) {
+      el.hunterName.textContent = h.name;
+    }
+    if (el.hunterType) {
+      el.hunterType.textContent = elementTypeLabel(h.elementType);
+    }
+    if (el.hunterPortrait) {
+      const hunterPortraitId = h.portraitId || "Kael_back";
+      let hunterImg = el.hunterPortrait.querySelector("img.hunter-portrait-img");
+      if (
+        !hunterImg ||
+        hunterImg.getAttribute("data-portrait-id") !== hunterPortraitId
+      ) {
+        el.hunterPortrait.innerHTML = "";
+        hunterImg = document.createElement("img");
+        hunterImg.className = "hunter-portrait-img";
+        hunterImg.alt = "";
+        hunterImg.draggable = false;
+        hunterImg.setAttribute("data-portrait-id", hunterPortraitId);
+        el.hunterPortrait.appendChild(hunterImg);
+        configureHunterImage(hunterImg, hunterPortraitId);
+      }
+    }
     el.monsterName.textContent = m.name;
+    if (el.monsterType) {
+      el.monsterType.textContent = elementTypeLabel(m.affinityKey);
+    }
     if (el.monsterPortrait) {
       const portraitId = m.portraitId || "default";
       let img = el.monsterPortrait.querySelector("img.monster-portrait-img");
@@ -717,8 +798,17 @@
     el.playerHpFill.style.transform = "scaleX(" + Math.max(0, pp) + ")";
     el.playerHpText.textContent =
       Math.max(0, Math.floor(state.playerHp)) + " / " + state.playerMaxHp;
-
     const maxT = m.attackTimerMax;
+    if (el.monsterSpecialFill) {
+      const sp = maxT > 0 ? state.monsterTimer / maxT : 0;
+      el.monsterSpecialFill.style.transform =
+        "scaleX(" + Math.max(0, Math.min(1, sp)) + ")";
+    }
+    if (el.hunterSpecialFill) {
+      const hs = Math.max(0.25, Math.min(1, pp * 0.8 + 0.2));
+      el.hunterSpecialFill.style.transform = "scaleX(" + hs + ")";
+    }
+
     const prog = maxT > 0 ? state.monsterTimer / maxT : 0;
     el.timerRing.style.strokeDashoffset = String(CIRC * (1 - Math.max(0, Math.min(1, prog))));
 
@@ -1147,13 +1237,19 @@
   function init() {
     el.grid = document.getElementById("grid");
     el.gridWrap = document.getElementById("gridWrap");
+    el.hunterPortrait = document.getElementById("hunterPortrait");
+    el.hunterName = document.getElementById("hunterName");
+    el.hunterType = document.getElementById("hunterType");
     el.monsterPortrait = document.getElementById("monsterPortrait");
     el.monsterShakeWrap = document.getElementById("monsterShakeWrap");
     el.monsterName = document.getElementById("monsterName");
+    el.monsterType = document.getElementById("monsterType");
     el.monsterHpFill = document.getElementById("monsterHpFill");
     el.monsterHpText = document.getElementById("monsterHpText");
+    el.monsterSpecialFill = document.getElementById("monsterSpecialFill");
     el.playerHpFill = document.getElementById("playerHpFill");
     el.playerHpText = document.getElementById("playerHpText");
+    el.hunterSpecialFill = document.getElementById("hunterSpecialFill");
     el.timerRing = document.getElementById("timerRing");
     el.floorPill = document.getElementById("floorPill");
     el.riftStrip = document.getElementById("riftStrip");
