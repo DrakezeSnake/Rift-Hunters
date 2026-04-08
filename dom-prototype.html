@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Rift Hunters — DOM prototype (legacy)</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="match-vfx.css" />
+    <link rel="stylesheet" href="monster-strike.css" />
+  </head>
+  <body>
+    <div id="app">
+      <section class="battle-stage" aria-label="Battle">
+        <div class="battle-bg" aria-hidden="true"></div>
+        <div class="battle-content">
+          <div class="battle-layout">
+            <div class="hud-panel hud-panel--monster">
+              <div class="bar-title">
+                <span id="monsterName">—</span>
+                <span class="type-badge" id="monsterType">Fire</span>
+              </div>
+              <div class="bar-line">
+                <div class="hud-track hud-track--monster">
+                  <div class="bar-fill bar-fill--monster" id="monsterHpFill"></div>
+                </div>
+                <span class="bar-nums" id="monsterHpText"></span>
+              </div>
+              <div class="bar-label">Special</div>
+              <div class="hud-track hud-track--special">
+                <div class="bar-fill bar-fill--special" id="monsterSpecialFill"></div>
+              </div>
+            </div>
+            <div class="monster-shake-wrap" id="monsterShakeWrap">
+              <div class="monster-portrait" id="monsterPortrait" aria-hidden="true"></div>
+            </div>
+            <div class="hud-panel hud-panel--hunter">
+              <div class="bar-title">
+                <span id="hunterName">Kael</span>
+                <span class="type-badge" id="hunterType">Blade</span>
+              </div>
+              <div class="bar-line">
+                <div class="hud-track hud-track--player">
+                  <div class="bar-fill bar-fill--player" id="playerHpFill"></div>
+                </div>
+                <span class="bar-nums" id="playerHpText"></span>
+              </div>
+              <div class="bar-label">Special</div>
+              <div class="hud-track hud-track--special">
+                <div class="bar-fill bar-fill--special" id="hunterSpecialFill"></div>
+              </div>
+            </div>
+            <div class="hunter-portrait" id="hunterPortrait" role="button" aria-label="Cast hunter special"></div>
+          </div>
+          <div class="battle-header-right">
+            <div class="floor-pill" id="floorPill">Floor 1</div>
+            <div class="timer-wrap" id="timerWrap" aria-label="Monster attack timer">
+              <svg class="timer-ring" viewBox="0 0 64 64">
+                <circle class="timer-bg" cx="32" cy="32" r="28" />
+                <circle class="timer-fg" id="timerRing" cx="32" cy="32" r="28" />
+              </svg>
+              <span class="timer-icon" id="timerIcon">⚔</span>
+            </div>
+          </div>
+          <div class="combat-toast" id="combatToast" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="player-split">
+        <div class="rift-strip" id="riftStrip" title="Active Rift Cards"></div>
+      </section>
+
+      <main class="grid-wrap" id="gridWrap">
+        <div class="grid" id="grid" role="application" aria-label="Match grid"></div>
+      </main>
+
+      <div id="riftOverlay" class="overlay hidden" aria-hidden="true">
+        <div class="sheet">
+          <h2 class="sheet-title">Choose a Rift Card</h2>
+          <p class="sheet-sub">Mutates rules for the rest of this run.</p>
+          <div class="card-row" id="riftCardRow"></div>
+        </div>
+      </div>
+
+      <div id="gameOverOverlay" class="overlay hidden" aria-hidden="true">
+        <div class="sheet sheet-small">
+          <h2 class="sheet-title" id="gameOverTitle">Run ended</h2>
+          <p class="sheet-sub" id="gameOverDetail"></p>
+          <button type="button" class="btn" id="btnRestart">New run</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="grid.js"></script>
+    <script src="combat.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

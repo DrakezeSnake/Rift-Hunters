@@ -70,15 +70,12 @@
         "Fire tiles deal splash: +25% of their damage as bonus when Ember matches.",
       hooks: {
         afterWaveDamage(ctx) {
-          const data = window.RH_DATA;
           const cm = ctx.cascadeMult != null ? ctx.cascadeMult : 1;
           let bonus = 0;
           for (let i = 0; i < ctx.tiles.length; i++) {
             const t = ctx.tiles[i];
             if (t.type === "ember") {
-              bonus += Math.floor(
-                data.TILE_BASE_DAMAGE.ember * 0.25 * cm
-              );
+              bonus += Math.floor(TILE_BASE_DAMAGE.ember * 0.25 * cm);
             }
           }
           return bonus;

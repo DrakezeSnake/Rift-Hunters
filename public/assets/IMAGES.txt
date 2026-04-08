@@ -1,0 +1,34 @@
+Rift Hunters — where to put image files
+
+Built-in SVG icons load automatically if no files are found (so tiles and the
+monster portrait always show something). To use your own art, add files here;
+they are tried first: .png, .webp, .jpg, .jpeg for each name.
+
+Tiles: assets/tiles/ then assets/images/tiles/
+
+Monsters (in order):
+  1) assets/monster/  (singular — common for one portrait file)
+  2) assets/monsters/ and assets/images/monsters/
+
+tiles/
+  e.g. assets/tiles/blade.png … void.png
+  Names: blade, ember, tide, spark, root, void
+
+monsters/
+  Basename = monster.portraitId in app.js (e.g. default). Tries .png / .webp / .jpg / .jpeg.
+  For portraitId "default" also tries: Ash whelp.png, ash_whelp, ashwhelp (see data.js).
+  Spaces in filenames are OK (URLs are encoded). Example: assets/monster/Ash whelp.png
+
+Optional: power.png, rift.png for special tile overlays (not wired yet — tiles use data-type).
+
+rift-cards/
+  Put art in assets/rift-cards/ (or assets/images/rift-cards/).
+  Filenames match card id: ember_core.png, frozen_clockwork.png, bloodpact.png
+
+hunters/
+  Reserved for future hunter portraits.
+
+Backgrounds/
+  assets/Backgrounds/act1.png — battle stage (see .battle-bg in styles.css)
+
+Use a local server (node serve.mjs) so paths resolve correctly; opening index.html directly from disk may block loading some assets in some browsers.
